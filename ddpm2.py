@@ -70,6 +70,7 @@ def train(args, dataloader):
     l = len(dataloader)
 
     for epoch in range(args.epochs):
+        print(epoch)
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)
         for i, (images, _) in enumerate(pbar):
