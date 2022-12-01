@@ -27,15 +27,15 @@ class Diffusion:
         #prepare noise schedule:
         schedule = self.prepare_noise_schedule()
         self.sigma = schedule[0]
-        #self.sigma = self.sigma.to(device)
+        self.sigma = self.sigma.to(device)
         #print(self.sigma)
         self.s = schedule[1]
-        #self.s = self.s.to(device)
+        self.s = self.s.to(device)
         #print(self.s)
         self.sigmagrad = schedule[2]
-        #self.sigmagrad = self.sigmagrad.to(device)
+        self.sigmagrad = self.sigmagrad.to(device)
         self.sgrad = schedule[3]
-        #self.sgrad = self.sgrad.to(device)
+        self.sgrad = self.sgrad.to(device)
         
 ### change this
     def prepare_noise_schedule(self):
@@ -46,7 +46,7 @@ class Diffusion:
         t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
         sigmagrad = (1.0/(self.noise_steps-1.0))*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
-        schedule = schedule.to('cuda')
+        
         return schedule
         #return torch.linspace(self.beta_start, self.beta_end, self.noise_steps) #linear between beta start and beta end with #noise steps
 
@@ -113,6 +113,7 @@ def train(args, dataloader):
 
             optimizer.zero_grad()
             loss.backward()
+            print(model[0].weight.grad)
             optimizer.step()
 
             pbar.set_postfix(MSE=loss.item())
