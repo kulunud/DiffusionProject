@@ -46,19 +46,14 @@ class Diffusion:
         t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
         sigmagrad = (1.0/(self.noise_steps-1.0))*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
-        
         return schedule
-        #return torch.linspace(self.beta_start, self.beta_end, self.noise_steps) #linear between beta start and beta end with #noise steps
 
     ### change this - adds noise for each training step forward noising
     def noise_images(self, x, t):
-        #sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None]
-        #sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None]
         Ɛ = torch.randn_like(x)
-        s = self.s[t][:, None, None, None]
-        sigma = self.sigma[t][:, None, None, None]
-        return s*x + s*sigma*Ɛ, Ɛ
-        #return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
+        s_noise = self.s[t][:, None, None, None]
+        sigma_noise = self.sigma[t][:, None, None, None]
+        return s_noise * x + s_noise * sigma_noise * Ɛ, Ɛ
 
     ### change this
     def sample_timesteps(self, n):
