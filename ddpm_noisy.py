@@ -67,17 +67,15 @@ class Diffusion:
         logging.info(f"Sampling {n} new images....")
         model.eval()
         with torch.no_grad():
-            x = torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
+            x =self.sigma_max*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
             #sigma_t0*s_t0*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
-            time_steps = self.sigma  #dont want this to be linear also dont include zero
+            #time_steps = self.sigma  #dont want this to be linear also dont include zero
             prev_step = 0
-            for i in time_steps: #tqdm(reversed(range(1, self.noise_steps)), position=0):  ## noise steps are time steps...
+            for i in tqdm(reversed(range(1, self.noise_steps-1)), position=0):  ## noise steps are time steps...
                 t = (torch.ones(n)*i).long().to(self.device)   
-                #t = (torch.ones(n) * i).long().to(self.device)
-                
+                              
                 predicted_noise = model(x, t)  #this is D_theta
-                
-                
+                                
                 di = (self.sigmagrad[t]/self.sigma[t] + self.sgrad[t]/self.s[t])*x - (self.sigmagrad[t]*self.s[t]/self.sigma[t])*predicted_noise
                 x = x + (i-prev_step)*di
                 prev_step = i
