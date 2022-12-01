@@ -51,7 +51,8 @@ class Diffusion:
     ### change this - adds noise for each training step forward noising
     def noise_images(self, x, t):
         Ɛ = torch.randn_like(x)
-        print(self.s[t])
+        print(self.s)
+        print(t)
         s_noise = self.s[t][:, None, None, None]
         sigma_noise = self.sigma[t][:, None, None, None]
         return s_noise * x + s_noise * sigma_noise * Ɛ, Ɛ
