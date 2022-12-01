@@ -13,7 +13,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, sigma_min=0.002, sigma_max=80, img_size=256, device="cuda", p = 1):
+    def __init__(self, noise_steps=1000, sigma_min=0.002, sigma_max=80, img_size=128, device="cuda", p = 1):
         self.p = p
         self.noise_steps = noise_steps
         self.sigma_min = sigma_min
@@ -25,13 +25,14 @@ class Diffusion:
         #self.alpha = 1. - self.beta
         #self.alpha_hat = torch.cumprod(self.alpha, dim=0)
         #prepare noise schedule:
-        self.sigma = self.prepare_noise_schedule()[0]
+        schedule = self.prepare_noise_schedule
+        self.sigma = schedule[0]
         self.sigma = self.sigma.to(device)
-        self.s = self.prepare_noise_schedule()[1]
+        self.s = schedule[1]
         self.s = self.s.to(device)
-        self.sigmagrad = self.prepare_noise_schedule()[2]
+        self.sigmagrad = schedule[2]
         self.sigmagrad = self.sigmagrad.to(device)
-        self.sgrad = self.prepare_noise_schedule()[3]
+        self.sgrad = schedule[3]
         self.sgrad = self.sgrad.to(device)
         
 ### change this
@@ -72,18 +73,11 @@ class Diffusion:
                 
                 predicted_noise = model(x, t)  #this is D_theta
                 
-                #alpha = self.alpha[t][:, None, None, None]
-                #alpha_hat = self.alpha_hat[t][:, None, None, None]
-                #beta = self.beta[t][:, None, None, None]
-                #if i > 1:
-                #    noise = torch.randn_like(x)
-                #else:
-                #    noise = torch.zeros_like(x)
                 
                 di = (self.sigmagrad[t]/self.sigma[t] + self.sgrad[t]/self.s[t])*x - (self.sigmagrad[t]*self.s[t]/self.sigma[t])*predicted_noise
                 x = x + (i-prev_step)*di
                 prev_step = i
-                #x = 1 / torch.sqrt(alpha) * (x - ((1 - alpha) / (torch.sqrt(1 - alpha_hat))) * predicted_noise) + torch.sqrt(beta) * noise
+                
         model.train()
         x = (x.clamp(-1, 1) + 1) / 2
         x = (x * 255).type(torch.uint8)
