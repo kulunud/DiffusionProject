@@ -51,8 +51,7 @@ class Diffusion:
     ### change this - adds noise for each training step forward noising
     def noise_images(self, x, t):
         Ɛ = torch.randn_like(x)
-        print(self.s)
-        print(t)
+        
         s_noise = self.s[t][:, None, None, None]
         sigma_noise = self.sigma[t][:, None, None, None]
         return s_noise * x + s_noise * sigma_noise * Ɛ, Ɛ
@@ -66,7 +65,8 @@ class Diffusion:
         logging.info(f"Sampling {n} new images....")
         model.eval()
         with torch.no_grad():
-            x = sigma_t0*s_t0*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
+            x = torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
+            #sigma_t0*s_t0*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
             time_steps = self.sigma  #dont want this to be linear also dont include zero
             prev_step = 0
             for i in time_steps: #tqdm(reversed(range(1, self.noise_steps)), position=0):  ## noise steps are time steps...
@@ -106,8 +106,9 @@ def train(args, dataloader):
             t = diffusion.sample_timesteps(images.shape[0]).to(device)  #whats this doing
             x_t, noise = diffusion.noise_images(images, t)
             predicted_noise = model(x_t, t)
+            print(predicted_noise)
             loss = mse(noise, predicted_noise)
-            print(loss)
+            #print(loss)
 
             optimizer.zero_grad()
             loss.backward()
