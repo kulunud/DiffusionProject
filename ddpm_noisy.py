@@ -33,7 +33,8 @@ class Diffusion:
 ### change this
     def prepare_noise_schedule(self):
         p = self.p
-        i = range(1, self.noise_steps)/(self.noise_steps-1)
+        i = range(1, self.noise_steps)
+        i = i/(self.noise_steps-1)
         t = (self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^p
         sigmagrad = p*(self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^(p-1)*(self.sigma_min^(1/p) - self.sigma_max^(1/p))
         schedule = [t, ones(self.noise_steps), sigmagrad, 0]
