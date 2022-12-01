@@ -25,7 +25,7 @@ class Diffusion:
         #self.alpha = 1. - self.beta
         #self.alpha_hat = torch.cumprod(self.alpha, dim=0)
         #prepare noise schedule:
-        schedule = self.prepare_noise_schedule()
+        schedule = self.prepare_noise_schedule().to(device)
         self.sigma = schedule[0]
         #self.sigma = self.sigma.to(device)
         #print(self.sigma)
