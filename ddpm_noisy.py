@@ -13,7 +13,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, sigma_min=1e-4, sigma_max=0.02, img_size=256, device="cuda", p = 1):
+    def __init__(self, noise_steps=1000, sigma_min=0.002, sigma_max=80, img_size=256, device="cuda", p = 1):
         self.p = p
         self.noise_steps = noise_steps
         self.sigma_min = sigma_min
