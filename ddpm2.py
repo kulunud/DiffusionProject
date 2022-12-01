@@ -58,10 +58,10 @@ class Diffusion:
         return x
 
 
-def train(args):
+def train(args, dataloader):
     setup_logging(args.run_name)
     device = args.device
-    dataloader = get_data(args)
+    dataloader = dataloader
     model = UNet().to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     mse = nn.MSELoss()
@@ -70,6 +70,7 @@ def train(args):
     l = len(dataloader)
 
     for epoch in range(args.epochs):
+        print(epoch)
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)
         for i, (images, _) in enumerate(pbar):
