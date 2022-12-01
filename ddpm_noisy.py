@@ -52,11 +52,11 @@ class Diffusion:
 
     ### change this - adds noise for each training step forward noising
     def noise_images(self, x, t):      
-        s_noise = self.s[t][:, None, None, None]
+        #s_noise = self.s[t][:, None, None, None]
         #print(s_noise)
         sigma_noise = self.sigma[t][:, None, None, None]
         Ɛ = torch.randn_like(x)
-        return s_noise * x + s_noise * sigma_noise * Ɛ, Ɛ
+        return  x + sigma_noise * Ɛ, Ɛ
 
     ### change this
     def sample_timesteps(self, n):
