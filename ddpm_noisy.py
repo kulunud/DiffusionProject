@@ -70,7 +70,7 @@ class Diffusion:
             x =self.sigma_max*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
             #sigma_t0*s_t0*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
             #time_steps = self.sigma  #dont want this to be linear also dont include zero
-            prev_step = 0
+            prev_step = self.sigma_max
             for i in tqdm(reversed(range(1, self.noise_steps-1)), position=0):  ## noise steps are time steps...
                 t = (torch.ones(n)*i).long().to(self.device)   
                               
@@ -81,8 +81,8 @@ class Diffusion:
                 s = self.s[t][:, None, None, None]
                                 
                 di = (sigmagrad/sigma + sgrad/s)*x - (sigmagrad*s/sigma)*predicted_noise
-                x = x + (i-prev_step)*di
-                prev_step = i
+                x = x + (self.sigma[i]-prev_step)*di
+                prev_step = self.sigma[i]
                 
         model.train()
         x = (x.clamp(-1, 1) + 1) / 2
