@@ -88,10 +88,11 @@ def train(args):
     setup_logging(args.run_name)
     device = args.device
     dataloader = get_data(args)
+    p = args.p ##need to implement
     model = UNet().to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     mse = nn.MSELoss()
-    diffusion = Diffusion(img_size=args.image_size, device=device)
+    diffusion = Diffusion(img_size=args.image_size, device=device, p = p)
     logger = SummaryWriter(os.path.join("runs", args.run_name))
     l = len(dataloader)
 
@@ -124,7 +125,7 @@ def launch():
     args.run_name = "DDPM_Uncondtional"
     args.epochs = 500
     args.batch_size = 12
-    args.image_size = 64
+    args.image_size = 32
     args.dataset_path = r"C:\Users\dome\datasets\landscape_img_folder"
     args.device = "cuda"
     args.lr = 3e-4

@@ -13,7 +13,8 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, sigma_min=1e-4, sigma_max=0.02, img_size=256, device="cuda", p = 1):
+    def __init__(self, noise_steps=1000, sigma_min=1e-4, sigma_max=0.02, img_size=256, device="cuda", noise_sched = "keras", p = p):
+        self.noise_sched = noise_sched
         self.p = p
         self.noise_steps = noise_steps
         self.sigma_min = sigma_min
@@ -32,11 +33,22 @@ class Diffusion:
         
 ### change this
     def prepare_noise_schedule(self):
-        p = self.p
-        i = range(1, self.noise_steps)/(self.noise_steps-1)
-        t = (self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^p
-        sigmagrad = p*(self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^(p-1)*(self.sigma_min^(1/p) - self.sigma_max^(1/p))
-        schedule = [t, ones(self.noise_steps), sigmagrad, 0]
+        if self.noise_sched == "keras":
+            p = self.p
+            i = range(1, self.noise_steps)/(self.noise_steps-1)
+            t = (self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^p
+            sigmagrad = p*(self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^(p-1)*(self.sigma_min^(1/p) - self.sigma_max^(1/p))
+            schedule = [t, ones(self.noise_steps), sigmagrad, 0]
+        else if self.noise_sched == "VP_p":
+            p = self.p 
+            ...
+        
+        else if self.noise_sched == "keras_exp":
+            ...
+        else if self.noise_sched == "logG":
+            ...
+            
+        
         return schedule
         #return torch.linspace(self.beta_start, self.beta_end, self.noise_steps) #linear between beta start and beta end with #noise steps
 
