@@ -25,7 +25,7 @@ class Diffusion:
         #self.alpha = 1. - self.beta
         #self.alpha_hat = torch.cumprod(self.alpha, dim=0)
         #prepare noise schedule:
-        schedule = self.prepare_noise_schedule
+        schedule = self.prepare_noise_schedule()
         self.sigma = schedule[0]
         self.sigma = self.sigma.to(device)
         self.s = schedule[1]
@@ -92,7 +92,7 @@ def train(args, dataloader):
     model = UNet().to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     mse = nn.MSELoss()
-    diffusion = Diffusion(img_size=args.image_size, device=device, p = p)
+    diffusion = Diffusion(img_size=args.image_size, device=device, p = args.p)
     logger = SummaryWriter(os.path.join("runs", args.run_name))
     l = len(dataloader)
 
