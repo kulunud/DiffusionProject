@@ -75,8 +75,12 @@ class Diffusion:
                 t = (torch.ones(n)*i).long().to(self.device)   
                               
                 predicted_noise = model(x, t)  #this is D_theta
+                sigmagrad =  self.sigmagrad[t][:, None, None, None]
+                sigma = self.sigma[t][:, None, None, None]
+                sgrad = self.sgrad[t][:, None, None, None]
+                s = self.s[t][:, None, None, None]
                                 
-                di = (self.sigmagrad[t]/self.sigma[t] + self.sgrad[t]/self.s[t])*x - (self.sigmagrad[t]*self.s[t]/self.sigma[t])*predicted_noise
+                di = (sigmagrad/sigma + sgrad/s)*x - (sigmagrad*s/sigma)*predicted_noise
                 x = x + (i-prev_step)*di
                 prev_step = i
                 
