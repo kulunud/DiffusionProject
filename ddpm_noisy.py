@@ -25,10 +25,14 @@ class Diffusion:
         #self.alpha = 1. - self.beta
         #self.alpha_hat = torch.cumprod(self.alpha, dim=0)
         #prepare noise schedule:
-        self.sigma = self.prepare_noise_schedule()[0].to(device)
-        self.s = self.prepare_noise_schedule()[1].to(device)
-        self.sigmagrad = self.prepare_noise_schedule()[2].to(device)
-        self.sgrad = self.prepare_noise_schedule()[3].to(device)
+        self.sigma = self.prepare_noise_schedule()[0]
+        self.sigma = self.sigma.to(device)
+        self.s = self.prepare_noise_schedule()[1]
+        self.s = self.s.to(device)
+        self.sigmagrad = self.prepare_noise_schedule()[2]
+        self.sigmagrad = self.sigmagrad.to(device)
+        self.sgrad = self.prepare_noise_schedule()[3]
+        self.sgrad = self.sgrad.to(device)
         
 ### change this
     def prepare_noise_schedule(self):
