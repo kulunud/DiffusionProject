@@ -36,7 +36,7 @@ class Diffusion:
         i = torch.arange(1, self.noise_steps)/(self.noise_steps-1)
         t = (self.sigma_max**(1/p) + i*(self.sigma_min**(1/p) - self.sigma_max**(1/p)))**p
         sigmagrad = (1/(self.noise_steps-1))*(self.sigma_min**(1/p) - self.sigma_max**(1/p))*p*(self.sigma_max**(1/p) + i*(self.sigma_min**(1/p) - self.sigma_max**(1/p)))**(p-1)
-        schedule = [t, torch.ones(self.noise_steps), sigmagrad, torch.zeros(self.noise_steps)]
+        schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
         return schedule
         #return torch.linspace(self.beta_start, self.beta_end, self.noise_steps) #linear between beta start and beta end with #noise steps
 
