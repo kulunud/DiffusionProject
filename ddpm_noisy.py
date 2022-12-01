@@ -84,10 +84,10 @@ class Diffusion:
         return x
 
 
-def train(args):
+def train(args, dataloader):
     setup_logging(args.run_name)
     device = args.device
-    dataloader = get_data(args)
+    dataloader = dataloader
     p = args.p ##need to implement
     model = UNet().to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
