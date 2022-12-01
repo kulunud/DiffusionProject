@@ -43,15 +43,17 @@ class Diffusion:
         i = torch.arange(1, self.noise_steps)/(self.noise_steps-1)
         #reverse time
         i = torch.flip(i, (0,))
+        print(i)
         t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
         sigmagrad = (1.0/(self.noise_steps-1.0))*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
+        print(schedule)
         return schedule
 
     ### change this - adds noise for each training step forward noising
     def noise_images(self, x, t):      
         s_noise = self.s[t][:, None, None, None]
-        print(s_noise)
+        #print(s_noise)
         sigma_noise = self.sigma[t][:, None, None, None]
         Ɛ = torch.randn_like(x)
         return s_noise * x + s_noise * sigma_noise * Ɛ, Ɛ
