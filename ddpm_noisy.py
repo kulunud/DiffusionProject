@@ -34,7 +34,7 @@ class Diffusion:
     def prepare_noise_schedule(self):
         p = self.p
         i = torch.arange(1, self.noise_steps)/(self.noise_steps-1)
-        t = (self.sigma_min**(1/p) + i*(self.sigma_min**(1/p) - self.sigma_max**(1/p)))**p
+        t = (self.sigma_max**(1/p) + i*(self.sigma_min**(1/p) - self.sigma_max**(1/p)))**p
         sigmagrad = (self.sigma_min**(1/p) - self.sigma_max**(1/p))*p*(self.sigma_min**(1/p) + i*(self.sigma_min**(1/p) - self.sigma_max**(1/p)))**(p-1)
         schedule = [t, torch.ones(self.noise_steps), sigmagrad, torch.zeros(self.noise_steps)]
         return schedule
