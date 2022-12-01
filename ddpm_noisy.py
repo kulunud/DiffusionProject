@@ -25,7 +25,7 @@ class Diffusion:
         #self.alpha = 1. - self.beta
         #self.alpha_hat = torch.cumprod(self.alpha, dim=0)
         #prepare noise schedule:
-        schedule = self.prepare_noise_schedule().to(device)
+        schedule = self.prepare_noise_schedule()
         self.sigma = schedule[0]
         #self.sigma = self.sigma.to(device)
         #print(self.sigma)
@@ -46,6 +46,7 @@ class Diffusion:
         t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
         sigmagrad = (1.0/(self.noise_steps-1.0))*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
+        schedule = schedule.to('cuda')
         return schedule
         #return torch.linspace(self.beta_start, self.beta_end, self.noise_steps) #linear between beta start and beta end with #noise steps
 
