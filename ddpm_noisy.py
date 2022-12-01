@@ -40,7 +40,7 @@ class Diffusion:
         p = self.p
         i = torch.arange(1, self.noise_steps)/(self.noise_steps-1)
         #reverse time
-        i = torch.flip(i)
+        i = torch.flip(i, (0,))
         t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
         sigmagrad = (1.0/(self.noise_steps-1.0))*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
