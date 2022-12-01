@@ -109,7 +109,7 @@ def train(args, dataloader):
 
             optimizer.zero_grad()
             loss.backward()
-            print(model.encoder.layer1[1].weight.grad)
+            #print(model.encoder.layer1[1].weight.grad)
             optimizer.step()
 
             pbar.set_postfix(MSE=loss.item())
