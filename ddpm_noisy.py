@@ -60,7 +60,7 @@ class Diffusion:
 
     ### change this
     def sample_timesteps(self, n):
-        return torch.randint(low=1, high=self.noise_steps, size=(n,))
+        return torch.randint(low=1, high=self.noise_steps-1, size=(n,))
 
     ### change this to ODE solve (Euler method)
     def sample(self, model, n):
