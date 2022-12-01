@@ -40,10 +40,11 @@ class Diffusion:
 
     ### change this - adds noise for each training step forward noising
     def noise_images(self, x, t):
-        sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None]
-        sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None]
+        #sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None]
+        #sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None]
         Ɛ = torch.randn_like(x)
-        return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
+        return self.s[t]*x + self.s[t]*self.sigma[t]*Ɛ, Ɛ
+        #return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
 
     ### change this
     def sample_timesteps(self, n):
@@ -77,7 +78,7 @@ class Diffusion:
                 #x = 1 / torch.sqrt(alpha) * (x - ((1 - alpha) / (torch.sqrt(1 - alpha_hat))) * predicted_noise) + torch.sqrt(beta) * noise
         model.train()
         x = (x.clamp(-1, 1) + 1) / 2
-        x = (x * 255).type(torch.uint8)
+        x = (x * 128).type(torch.uint8)
         return x
 
 
