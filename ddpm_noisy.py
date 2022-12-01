@@ -13,7 +13,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, sigma_min=0.002, sigma_max=80, img_size=128, device="cuda", p = 1):
+    def __init__(self, noise_steps=1000, sigma_min=0.002, sigma_max=80, img_size=128, device="cuda", p = 1.0):
         self.p = p
         self.noise_steps = noise_steps
         self.sigma_min = sigma_min
@@ -28,8 +28,10 @@ class Diffusion:
         schedule = self.prepare_noise_schedule()
         self.sigma = schedule[0]
         self.sigma = self.sigma.to(device)
+        #print(self.sigma)
         self.s = schedule[1]
         self.s = self.s.to(device)
+        #print(self.s)
         self.sigmagrad = schedule[2]
         self.sigmagrad = self.sigmagrad.to(device)
         self.sgrad = schedule[3]
@@ -39,9 +41,12 @@ class Diffusion:
     def prepare_noise_schedule(self):
         p = self.p
         i = torch.arange(1, self.noise_steps)/(self.noise_steps-1)
-        t = (self.sigma_max**(1/p) + i*(self.sigma_min**(1/p) - self.sigma_max**(1/p)))**p
-        sigmagrad = (1/(self.noise_steps-1))*(self.sigma_min**(1/p) - self.sigma_max**(1/p))*p*(self.sigma_max**(1/p) + i*(self.sigma_min**(1/p) - self.sigma_max**(1/p)))**(p-1)
+        #reverse time
+        i = torch.flip(i, (0,))
+        t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
+        sigmagrad = (1.0/(self.noise_steps-1.0))*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
+        
         return schedule
         #return torch.linspace(self.beta_start, self.beta_end, self.noise_steps) #linear between beta start and beta end with #noise steps
 
@@ -109,6 +114,7 @@ def train(args, dataloader):
 
             optimizer.zero_grad()
             loss.backward()
+            print(model[0].weight.grad)
             optimizer.step()
 
             pbar.set_postfix(MSE=loss.item())
