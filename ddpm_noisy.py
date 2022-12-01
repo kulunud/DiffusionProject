@@ -46,7 +46,9 @@ class Diffusion:
         #sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None]
         #sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None]
         Ɛ = torch.randn_like(x)
-        return self.s*x + self.s*self.sigma*Ɛ, Ɛ
+        s = self.s[t][:, None, None, None]
+        sigma = self.sigma[t][:, None, None, None]
+        return s*x + s*sigma*Ɛ, Ɛ
         #return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
 
     ### change this
