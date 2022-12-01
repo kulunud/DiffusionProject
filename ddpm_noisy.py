@@ -49,16 +49,16 @@ class Diffusion:
         return schedule
 
     ### change this - adds noise for each training step forward noising
-    def noise_images(self, x, t):
-        Ɛ = torch.randn_like(x)
-        
+    def noise_images(self, x, t):      
         s_noise = self.s[t][:, None, None, None]
+        print(s_noise)
         sigma_noise = self.sigma[t][:, None, None, None]
+        Ɛ = torch.randn_like(x)
         return s_noise * x + s_noise * sigma_noise * Ɛ, Ɛ
 
     ### change this
     def sample_timesteps(self, n):
-        return torch.randint(low=0, high=self.noise_steps, size=(n,))
+        return torch.randint(low=1, high=self.noise_steps, size=(n,))
 
     ### change this to ODE solve (Euler method)
     def sample(self, model, n):
@@ -106,7 +106,7 @@ def train(args, dataloader):
             t = diffusion.sample_timesteps(images.shape[0]).to(device)  #whats this doing
             x_t, noise = diffusion.noise_images(images, t)
             predicted_noise = model(x_t, t)
-            print(predicted_noise)
+            #print(predicted_noise)
             loss = mse(noise, predicted_noise)
             #print(loss)
 
