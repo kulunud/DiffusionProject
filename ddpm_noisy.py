@@ -13,7 +13,8 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, sigma_min=1e-4, sigma_max=0.02, img_size=256, device="cuda"):
+    def __init__(self, noise_steps=1000, sigma_min=1e-4, sigma_max=0.02, img_size=256, device="cuda", p = 1):
+        self.p = p
         self.noise_steps = noise_steps
         self.sigma_min = sigma_min
         self.sigma_max = sigma_max
@@ -31,6 +32,7 @@ class Diffusion:
         
 ### change this
     def prepare_noise_schedule(self):
+        p = self.p
         i = range(1, self.noise_steps)/(self.noise_steps-1)
         t = (self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^p
         sigmagrad = p*(self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^(p-1)*(self.sigma_min^(1/p) - self.sigma_max^(1/p))
