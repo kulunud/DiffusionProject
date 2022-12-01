@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 from torch import optim
 from utils2 import *
-from modules import UNet
+from modules32 import UNet
 import logging
 from torch.utils.tensorboard import SummaryWriter
 
@@ -99,7 +99,7 @@ def launch():
     args.run_name = "DDPM_Uncondtional"
     args.epochs = 500
     args.batch_size = 12
-    args.image_size = 64
+    args.image_size = 32
     args.dataset_path = r"C:\Users\dome\datasets\landscape_img_folder"
     args.device = "cuda"
     args.lr = 3e-4
