@@ -27,13 +27,15 @@ class Diffusion:
         #prepare noise schedule:
         schedule = self.prepare_noise_schedule()
         self.sigma = schedule[0]
-        self.sigma = self.sigma.to(device)
+        #self.sigma = self.sigma.to(device)
+        #print(self.sigma)
         self.s = schedule[1]
-        self.s = self.s.to(device)
+        #self.s = self.s.to(device)
+        #print(self.s)
         self.sigmagrad = schedule[2]
-        self.sigmagrad = self.sigmagrad.to(device)
+        #self.sigmagrad = self.sigmagrad.to(device)
         self.sgrad = schedule[3]
-        self.sgrad = self.sgrad.to(device)
+        #self.sgrad = self.sgrad.to(device)
         
 ### change this
     def prepare_noise_schedule(self):
