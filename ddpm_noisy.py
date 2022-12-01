@@ -105,6 +105,7 @@ def train(args, dataloader):
             x_t, noise = diffusion.noise_images(images, t)
             predicted_noise = model(x_t, t)
             loss = mse(noise, predicted_noise)
+            print(loss)
 
             optimizer.zero_grad()
             loss.backward()
