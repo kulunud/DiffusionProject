@@ -48,8 +48,10 @@ class Diffusion:
         #(1.0/(self.noise_steps-1.0))*
         #sigmagrad = (self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         sigmagrad = torch.ones(self.noise_steps-1)
-        schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
-        #print(schedule)
+        s = 1.0-(t**2)
+        sgrad = -2*t
+        schedule = torch.stack((t, s, sigmagrad, sgrad))
+       
         return schedule
 
     ### change this - adds noise for each training step forward noising
@@ -57,9 +59,9 @@ class Diffusion:
         #s_noise = self.s[t][:, None, None, None]
         #print(s_noise)
         sigma_noise = self.sigma[t][:, None, None, None]
-        
+        sigma_b = self.s[t][:, None, None, None]
         Ɛ = torch.randn_like(x)
-        return  x + sigma_noise * Ɛ, Ɛ, sigma_noise
+        return  sigma_b*x + sigma_noise * Ɛ, Ɛ, sigma_noise
 
     ### change this
     def sample_timesteps(self, n):
@@ -76,7 +78,7 @@ class Diffusion:
             prev_step = self.sigma_max
             for i in tqdm(reversed(range(1, self.noise_steps-1)), position=0):  ## noise steps are time steps...
                 t = (torch.ones(n)*i).long().to(self.device)   
-                              
+                                              
                 predicted_noise = model(x, t)  #this is D_theta
                 sigmagrad =  -self.sigmagrad[t][:, None, None, None]
                 sigma = self.sigma[t][:, None, None, None]
