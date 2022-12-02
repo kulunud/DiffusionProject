@@ -45,7 +45,8 @@ class Diffusion:
         i = torch.flip(i, (0,))
         #print(i)
         t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
-        sigmagrad = (1.0/(self.noise_steps-1.0))*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
+        #(1.0/(self.noise_steps-1.0))*
+        sigmagrad = (self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
         #print(schedule)
         return schedule
@@ -80,10 +81,10 @@ class Diffusion:
                 sigma = self.sigma[t][:, None, None, None]
                 sgrad = self.sgrad[t][:, None, None, None]
                 s = self.s[t][:, None, None, None]
-                                
-                di = (sigmagrad/sigma + sgrad/s)*x - (sigmagrad*s/sigma)*predicted_noise
+                           
+                di = (sigmagrad/sigma + sgrad/s)*x - (sigmagrad*s/sigma)*predicted_noise 
                # print(di)
-                x = x + (self.sigma[i]-prev_step)*di
+                x = x + (self.sigma[i]-prev_step)*di 
                 prev_step = self.sigma[i]
                 
         model.train()
@@ -112,7 +113,7 @@ def train(args, dataloader):
             t = diffusion.sample_timesteps(images.shape[0]).to(device)  #whats this doing
             x_t, noise, sigma = diffusion.noise_images(images, t)
             predicted_noise = model(x_t, t)
-            predicted_noise = (predicted_noise - x_t)/sigma**2 #is this right??
+            
             #print(predicted_noise)
             loss = mse(noise, predicted_noise)
             #print(loss)
