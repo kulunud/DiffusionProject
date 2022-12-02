@@ -24,7 +24,7 @@ class Diffusion:
         self.beta = self.prepare_noise_schedule().to(device)
         self.alpha = 1. - self.beta
         self.alpha_hat = torch.cumprod(self.alpha, dim=0)
-        print(torch.sqrt(1 - self.alpha_hat))
+        #print(torch.sqrt(1 - self.alpha_hat))
     def prepare_noise_schedule(self):
         p = self.p
         t = torch.arange(10**(-5), 1.0, 1.0/self.noise_steps)
