@@ -48,8 +48,8 @@ class Diffusion:
         #(1.0/(self.noise_steps-1.0))*
         #sigmagrad = (self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         sigmagrad = torch.ones(self.noise_steps-1)
-        s = 1.0-(t**2)
-        sgrad = -2*t
+        s = torch.sqrt(1.0-(t**2))
+        sgrad = -t*(1.0-t**2)**(-0.5)
         schedule = torch.stack((t, s, sigmagrad, sgrad))
        
         return schedule
