@@ -42,9 +42,9 @@ class Diffusion:
         p = self.p
         i = torch.arange(1, self.noise_steps)/(self.noise_steps-1)
         #reverse time
-        i = torch.flip(i, (0,))
+        #i = torch.flip(i, (0,))
         #print(i)
-        t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
+        t = (self.sigma_min**(1.0/p) + i*(self.sigma_max**(1.0/p) - self.sigma_min**(1.0/p)))**p
         #(1.0/(self.noise_steps-1.0))*
         #sigmagrad = (self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         sigmagrad = torch.ones(self.noise_steps-1)
@@ -80,7 +80,7 @@ class Diffusion:
                 predicted_noise = model(x, t)  #this is D_theta
                 sigmagrad =  -self.sigmagrad[t][:, None, None, None]
                 sigma = self.sigma[t][:, None, None, None]
-                sgrad = self.sgrad[t][:, None, None, None]
+                sgrad = -self.sgrad[t][:, None, None, None]
                 s = self.s[t][:, None, None, None]
                            
                 di = (sigmagrad/sigma + sgrad/s)*x - (sigmagrad*s/sigma)*predicted_noise 
