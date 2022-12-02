@@ -13,7 +13,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, sigma_min=1e-4, sigma_max=80, img_size=128, device="cuda", p = 1.0):
+    def __init__(self, noise_steps=1000, sigma_min=0.002, sigma_max=80, img_size=128, device="cuda", p = 1.0):
         self.p = p
         self.noise_steps = noise_steps
         self.sigma_min = sigma_min
@@ -55,8 +55,9 @@ class Diffusion:
         #s_noise = self.s[t][:, None, None, None]
         #print(s_noise)
         sigma_noise = self.sigma[t][:, None, None, None]
+        scum = torch.cumsum(self.sigma[0:t]**2)
         Ɛ = torch.randn_like(x)
-        return  x + sigma_noise * Ɛ, Ɛ * 1/sigma_noise
+        return  x + sigma_noise * Ɛ, Ɛ * torch.sqrt(scum)
 
     ### change this
     def sample_timesteps(self, n):
