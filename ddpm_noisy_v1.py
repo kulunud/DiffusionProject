@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 from torch import optim
 from utils2 import *
-from modules import UNet
+from modules32 import UNet
 import logging
 from torch.utils.tensorboard import SummaryWriter
 
@@ -13,83 +13,49 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, sigma_min=1e-4, sigma_max=0.02, img_size=256, device="cuda", noise_sched = "keras", p = p):
-        self.noise_sched = noise_sched
+    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.02, img_size=128, device="cuda", p = 1):
         self.p = p
         self.noise_steps = noise_steps
-        self.sigma_min = sigma_min
-        self.sigma_max = sigma_max
+        self.beta_start = beta_start
+        self.beta_end = beta_end
         self.img_size = img_size
         self.device = device
-        
-        #self.beta = self.prepare_noise_schedule().to(device)
-        #self.alpha = 1. - self.beta
-        #self.alpha_hat = torch.cumprod(self.alpha, dim=0)
-        #prepare noise schedule:
-        self.sigma = prepare.noise_schedule()[0].to(device)
-        self.s = prepare.noise_schedule()[1].to(device)
-        self.sigmagrad = prepare.noise_schedule()[2].to(device)
-        self.sgrad = prepare.noise_schedule()[3].to(device)
-        
-### change this
+
+        self.beta = self.prepare_noise_schedule().to(device)
+        self.alpha = 1. - self.beta
+        self.alpha_hat = torch.cumprod(self.alpha, dim=0)
+        print(torch.sqrt(1 - self.alpha_hat))
     def prepare_noise_schedule(self):
-        if self.noise_sched == "keras":
-            p = self.p
-            i = range(1, self.noise_steps)/(self.noise_steps-1)
-            t = (self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^p
-            sigmagrad = p*(self.sigma_min^(1/p) + i*(self.sigma_min^(1/p) - self.sigma_max^(1/p)))^(p-1)*(self.sigma_min^(1/p) - self.sigma_max^(1/p))
-            schedule = [t, ones(self.noise_steps), sigmagrad, 0]
-        else if self.noise_sched == "VP_p":
-            p = self.p 
-            ...
-        
-        else if self.noise_sched == "keras_exp":
-            ...
-        else if self.noise_sched == "logG":
-            ...
-            
-        
-        return schedule
-        #return torch.linspace(self.beta_start, self.beta_end, self.noise_steps) #linear between beta start and beta end with #noise steps
+        p = self.p
+        t = torch.arange(10**(-5), 1.0, 1.0/self.noise_steps)
+        beta = (self.beta_start**(1.0/p) + t*(self.beta_end**(1.0/p) - self.beta_start**(1.0/p)))**p
+        return beta
 
-    ### change this - adds noise for each training step forward noising
     def noise_images(self, x, t):
-        #sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None]
-        #sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None]
+        sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None]
+        sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None]
         Ɛ = torch.randn_like(x)
-        return self.s[t]*x + self.s[t]*self.sigma[t]*Ɛ, Ɛ
-        #return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
+        return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
 
-    ### change this
     def sample_timesteps(self, n):
         return torch.randint(low=1, high=self.noise_steps, size=(n,))
 
-    ### change this to ODE solve (Euler method)
     def sample(self, model, n):
         logging.info(f"Sampling {n} new images....")
         model.eval()
         with torch.no_grad():
-            x = sigma_t0*s_t0*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
-            time_steps = self.sigma  #dont want this to be linear also dont include zero
-            prev_step = 0
-            for i in time_steps: #tqdm(reversed(range(1, self.noise_steps)), position=0):  ## noise steps are time steps...
-                t = (torch.ones(n)*i).long().to(self.device)   
-                #t = (torch.ones(n) * i).long().to(self.device)
-                
-                predicted_noise = model(x, t)  #this is D_theta
-                
-                #alpha = self.alpha[t][:, None, None, None]
-                #alpha_hat = self.alpha_hat[t][:, None, None, None]
-                #beta = self.beta[t][:, None, None, None]
-                #if i > 1:
-                #    noise = torch.randn_like(x)
-                #else:
-                #    noise = torch.zeros_like(x)
-                
-                di = (self.sigmagrad[t]/self.sigma[t] + self.sgrad[t]/self.s[t])*x - (self.sigmagrad[t]*self.s[t]/self.sigma[t])*predicted_noise
-                x = x + (i-prev_step)*di
-                prev_step = i
-                #x = 1 / torch.sqrt(alpha) * (x - ((1 - alpha) / (torch.sqrt(1 - alpha_hat))) * predicted_noise) + torch.sqrt(beta) * noise
+            x = torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
+            for i in tqdm(reversed(range(1, self.noise_steps)), position=0):
+                t = (torch.ones(n) * i).long().to(self.device)
+                predicted_noise = model(x, t)
+                alpha = self.alpha[t][:, None, None, None]
+                alpha_hat = self.alpha_hat[t][:, None, None, None]
+                beta = self.beta[t][:, None, None, None]
+                if i > 1:
+                    noise = torch.randn_like(x)
+                else:
+                    noise = torch.zeros_like(x)
+                x = 1 / torch.sqrt(alpha) * (x - ((1 - alpha) / (torch.sqrt(1 - alpha_hat))) * predicted_noise) + torch.sqrt(beta) * noise
         model.train()
         x = (x.clamp(-1, 1) + 1) / 2
         x = (x * 255).type(torch.uint8)
@@ -103,16 +69,17 @@ def train(args, dataloader):
     model = UNet().to(device)
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     mse = nn.MSELoss()
-    diffusion = Diffusion(img_size=args.image_size, device=device)
+    diffusion = Diffusion(img_size=args.image_size, device=device, p = args.p)
     logger = SummaryWriter(os.path.join("runs", args.run_name))
     l = len(dataloader)
 
     for epoch in range(args.epochs):
+        print(epoch)
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)
         for i, (images, _) in enumerate(pbar):
             images = images.to(device)
-            t = diffusion.sample_timesteps(images.shape[0]).to(device)  #whats this doing
+            t = diffusion.sample_timesteps(images.shape[0]).to(device)
             x_t, noise = diffusion.noise_images(images, t)
             predicted_noise = model(x_t, t)
             loss = mse(noise, predicted_noise)
@@ -136,7 +103,7 @@ def launch():
     args.run_name = "DDPM_Uncondtional"
     args.epochs = 500
     args.batch_size = 12
-    args.image_size = 64
+    args.image_size = 32
     args.dataset_path = r"C:\Users\dome\datasets\landscape_img_folder"
     args.device = "cuda"
     args.lr = 3e-4

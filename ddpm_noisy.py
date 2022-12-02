@@ -13,7 +13,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, sigma_min=0.002, sigma_max=80, img_size=128, device="cuda", p = 1.0):
+    def __init__(self, noise_steps=1000, sigma_min=0.001, sigma_max=1, img_size=128, device="cuda", p = 1.0):
         self.p = p
         self.noise_steps = noise_steps
         self.sigma_min = sigma_min
@@ -42,46 +42,53 @@ class Diffusion:
         p = self.p
         i = torch.arange(1, self.noise_steps)/(self.noise_steps-1)
         #reverse time
-        i = torch.flip(i, (0,))
-        t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
-        sigmagrad = (1.0/(self.noise_steps-1.0))*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
-        schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
-        
+        #i = torch.flip(i, (0,))
+        #print(i)
+        t = (self.sigma_min**(1.0/p) + i*(self.sigma_max**(1.0/p) - self.sigma_min**(1.0/p)))**p
+        #(1.0/(self.noise_steps-1.0))*
+        #sigmagrad = (self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
+        sigmagrad = torch.ones(self.noise_steps-1)
+        s = torch.sqrt(1.0-(t**2))
+        sgrad = -t*(1.0-t**2)**(-0.5)
+        schedule = torch.stack((t, s, sigmagrad, sgrad))
+       
         return schedule
-        #return torch.linspace(self.beta_start, self.beta_end, self.noise_steps) #linear between beta start and beta end with #noise steps
 
     ### change this - adds noise for each training step forward noising
-    def noise_images(self, x, t):
-        #sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None]
-        #sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None]
+    def noise_images(self, x, t):      
+        #s_noise = self.s[t][:, None, None, None]
+        #print(s_noise)
+        sigma_noise = self.sigma[t][:, None, None, None]
+        sigma_b = self.s[t][:, None, None, None]
         Ɛ = torch.randn_like(x)
-        s = self.s[t][:, None, None, None]
-        sigma = self.sigma[t][:, None, None, None]
-        return s*x + s*sigma*Ɛ, Ɛ
-        #return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
+        return  sigma_b*x + sigma_noise * Ɛ, Ɛ, sigma_noise
 
     ### change this
     def sample_timesteps(self, n):
-        return torch.randint(low=1, high=self.noise_steps, size=(n,))
+        return torch.randint(low=1, high=self.noise_steps-1, size=(n,))
 
     ### change this to ODE solve (Euler method)
     def sample(self, model, n):
         logging.info(f"Sampling {n} new images....")
         model.eval()
         with torch.no_grad():
-            x = sigma_t0*s_t0*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
-            time_steps = self.sigma  #dont want this to be linear also dont include zero
-            prev_step = 0
-            for i in time_steps: #tqdm(reversed(range(1, self.noise_steps)), position=0):  ## noise steps are time steps...
+            x =self.sigma_max*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
+            #sigma_t0*s_t0*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
+            #time_steps = self.sigma  #dont want this to be linear also dont include zero
+            prev_step = self.sigma_max
+            for i in tqdm(reversed(range(1, self.noise_steps-1)), position=0):  ## noise steps are time steps...
                 t = (torch.ones(n)*i).long().to(self.device)   
-                #t = (torch.ones(n) * i).long().to(self.device)
-                
+                                              
                 predicted_noise = model(x, t)  #this is D_theta
-                
-                
-                di = (self.sigmagrad[t]/self.sigma[t] + self.sgrad[t]/self.s[t])*x - (self.sigmagrad[t]*self.s[t]/self.sigma[t])*predicted_noise
-                x = x + (i-prev_step)*di
-                prev_step = i
+                sigmagrad =  -self.sigmagrad[t][:, None, None, None]
+                sigma = self.sigma[t][:, None, None, None]
+                sgrad = -self.sgrad[t][:, None, None, None]
+                s = self.s[t][:, None, None, None]
+                           
+                di = (sigmagrad/sigma + sgrad/s)*x - (sigmagrad*s/sigma)*predicted_noise 
+               # print(di)
+                x = x + (self.sigma[i]-prev_step)*di 
+                prev_step = self.sigma[i]
                 
         model.train()
         x = (x.clamp(-1, 1) + 1) / 2
@@ -107,14 +114,16 @@ def train(args, dataloader):
         for i, (images, _) in enumerate(pbar):
             images = images.to(device)
             t = diffusion.sample_timesteps(images.shape[0]).to(device)  #whats this doing
-            x_t, noise = diffusion.noise_images(images, t)
+            x_t, noise, sigma = diffusion.noise_images(images, t)
             predicted_noise = model(x_t, t)
+            
+            #print(predicted_noise)
             loss = mse(noise, predicted_noise)
-            print(loss)
+            #print(loss)
 
             optimizer.zero_grad()
             loss.backward()
-            print(model[0].weight.grad)
+            #print(model.encoder.layer1[1].weight.grad)
             optimizer.step()
 
             pbar.set_postfix(MSE=loss.item())
