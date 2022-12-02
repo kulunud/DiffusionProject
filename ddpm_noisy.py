@@ -55,9 +55,9 @@ class Diffusion:
         #s_noise = self.s[t][:, None, None, None]
         #print(s_noise)
         sigma_noise = self.sigma[t][:, None, None, None]
-        scum = torch.cumsum(self.sigma[0:t]**2)
+        
         Ɛ = torch.randn_like(x)
-        return  x + sigma_noise * Ɛ, Ɛ * torch.sqrt(scum)
+        return  x + sigma_noise * Ɛ, Ɛ * sigma_noise
 
     ### change this
     def sample_timesteps(self, n):
