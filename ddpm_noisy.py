@@ -72,7 +72,7 @@ class Diffusion:
             #sigma_t0*s_t0*torch.randn((n, 3, self.img_size, self.img_size)).to(self.device)
             #time_steps = self.sigma  #dont want this to be linear also dont include zero
             prev_step = self.sigma_max
-            for i in tqdm(range(1, self.noise_steps-1), position=0):  ## noise steps are time steps...
+            for i in tqdm(reversed(range(1, self.noise_steps-1)), position=0):  ## noise steps are time steps...
                 t = (torch.ones(n)*i).long().to(self.device)   
                               
                 predicted_noise = model(x, t)  #this is D_theta
