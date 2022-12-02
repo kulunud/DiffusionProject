@@ -43,7 +43,7 @@ class Diffusion:
         i = torch.arange(1, self.noise_steps)/(self.noise_steps-1)
         #reverse time
         i = torch.flip(i, (0,))
-        print(i)
+        #print(i)
         t = (self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**p
         sigmagrad = (1.0/(self.noise_steps-1.0))*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p))*p*(self.sigma_max**(1.0/p) + i*(self.sigma_min**(1.0/p) - self.sigma_max**(1.0/p)))**(p-1.0)
         schedule = torch.stack((t, torch.ones(self.noise_steps-1), sigmagrad, torch.zeros(self.noise_steps-1)))
@@ -57,7 +57,7 @@ class Diffusion:
         sigma_noise = self.sigma[t][:, None, None, None]
         
         Ɛ = torch.randn_like(x)
-        return  x + sigma_noise * Ɛ, Ɛ * sigma_noise
+        return  x + sigma_noise * Ɛ, Ɛ #* sigma_noise
 
     ### change this
     def sample_timesteps(self, n):
@@ -82,7 +82,7 @@ class Diffusion:
                 s = self.s[t][:, None, None, None]
                                 
                 di = (sigmagrad/sigma + sgrad/s)*x - (sigmagrad*s/sigma)*predicted_noise
-                print(di)
+               # print(di)
                 x = x + (self.sigma[i]-prev_step)*di
                 prev_step = self.sigma[i]
                 
