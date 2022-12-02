@@ -57,7 +57,7 @@ class Diffusion:
         sigma_noise = self.sigma[t][:, None, None, None]
         
         Ɛ = torch.randn_like(x)
-        return  x + sigma_noise * Ɛ, Ɛ #* sigma_noise
+        return  x + sigma_noise * Ɛ, Ɛ, sigma_noise
 
     ### change this
     def sample_timesteps(self, n):
@@ -110,8 +110,9 @@ def train(args, dataloader):
         for i, (images, _) in enumerate(pbar):
             images = images.to(device)
             t = diffusion.sample_timesteps(images.shape[0]).to(device)  #whats this doing
-            x_t, noise = diffusion.noise_images(images, t)
+            x_t, noise, sigma = diffusion.noise_images(images, t)
             predicted_noise = model(x_t, t)
+            predicted_noise = (predicted_noise - x_t)/sigma**2 #is this right??
             #print(predicted_noise)
             loss = mse(noise, predicted_noise)
             #print(loss)
