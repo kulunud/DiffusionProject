@@ -15,7 +15,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.02, img_size=128, device="cuda", p = 1):
+    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.02, img_size=128, device="cuda", p = 1.0):
         self.p = p
         self.noise_steps = noise_steps
         self.beta_start = beta_start
@@ -104,7 +104,7 @@ def train(args, dataloader):
         #save_images(sampled_images, os.path.join("results", args.run_name, f"{epoch}.jpg"))
         
         if epoch==0 or epoch==50 or epoch==100 or epoch==150 or epoch==200:
-            sampled_x = BuildX(p=p, model = model, diffusion = diffusion)
+            sampled_x = BuildX(p = args.p, model = model, diffusion = diffusion)
             image_tensor = sampled_x/255
             FID = get_fid(image_tensor, '/content/DiffusionProject/data/cifar10.train.npz')
             FID_vec = torch.cat((FID_vec, torch.Tensor([FID]))).to(device)
