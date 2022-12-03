@@ -113,7 +113,7 @@ def train(args, dataloader):
         torch.save(model.state_dict(), os.path.join("models", args.run_name, f"ckpt.pt"))
                             
     print(FID_vec)
-    torch.save(FID_vec, os.path.join("FID", args.run_name, f"FIDScores.pt"))
+    torch.save(FID_vec, os.path.join("models", args.run_name, f"FIDScores.pt"))
                          
 
 
