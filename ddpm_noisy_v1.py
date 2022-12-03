@@ -63,10 +63,10 @@ class Diffusion:
         x = (x * 255).type(torch.uint8)
         return x
 
-def BuildX(p, model, diffusion):
+def BuildX(p, model, diffusion, n):
   x = torch.empty((0,3, 32, 32)).to('cuda')
   for k in range(10):
-      z = diffusion.sample(model, n=10)
+      z = diffusion.sample(model, n)
       x = torch.cat((x, z))
   return x
 
@@ -104,9 +104,10 @@ def train(args, dataloader):
         #save_images(sampled_images, os.path.join("results", args.run_name, f"{epoch}.jpg"))
         
         if epoch==0 or epoch==50 or epoch==100 or epoch==150 or epoch==200:
-            sampled_x = BuildX(p = args.p, model = model, diffusion = diffusion)
+            sampled_x = BuildX(p = args.p, model = model, diffusion = diffusion, n = args.n)
             image_tensor = sampled_x/255
             FID = get_fid(image_tensor, '/content/DiffusionProject/data/cifar10.train.npz')
+            print(FID)
             FID_vec = torch.cat((FID_vec, torch.Tensor([FID]).to(device)).to(device)
         
         torch.save(model.state_dict(), os.path.join("models", args.run_name, f"ckpt.pt"))
