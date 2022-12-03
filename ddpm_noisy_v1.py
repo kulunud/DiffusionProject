@@ -8,6 +8,8 @@ from utils2 import *
 from modules32 import UNet
 import logging
 from torch.utils.tensorboard import SummaryWriter
+import pytorch_gan_metrics
+from pytorch_gan_metrics import get_inception_score, get_fid
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=logging.INFO, datefmt="%I:%M:%S")
 
@@ -72,7 +74,7 @@ def train(args, dataloader):
     diffusion = Diffusion(img_size=args.image_size, device=device, p = args.p)
     logger = SummaryWriter(os.path.join("runs", args.run_name))
     l = len(dataloader)
-
+    FID_vec = torch.empty((1)).to(device)
     for epoch in range(args.epochs):
         print(epoch)
         logging.info(f"Starting epoch {epoch}:")
@@ -91,9 +93,20 @@ def train(args, dataloader):
             pbar.set_postfix(MSE=loss.item())
             logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
 
-        sampled_images = diffusion.sample(model, n=images.shape[0])
-        save_images(sampled_images, os.path.join("results", args.run_name, f"{epoch}.jpg"))
+        #sampled_images = diffusion.sample(model, n=images.shape[0])
+        #save_images(sampled_images, os.path.join("results", args.run_name, f"{epoch}.jpg"))
+        
+        if epoch==0 or epoch==50 or epoch==100 or epoch==150 or epoch==200:
+            sampled_x = BuildX(p)
+            image_tensor = sampled_x/255
+            FID = get_fid(image_tensor, '/content/DiffusionProject/data/cifar10.train.npz')
+            FID_vec = torch.cat((FID_vec, torch.Tensor([FID]))).to(device)
+        
         torch.save(model.state_dict(), os.path.join("models", args.run_name, f"ckpt.pt"))
+                            
+    print(FID_vec)
+    torch.save(FID_vec, os.path.join("FID", args.run_name, f"FIDScores.pt"))
+                         
 
 
 def launch():
