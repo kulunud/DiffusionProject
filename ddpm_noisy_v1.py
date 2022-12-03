@@ -108,7 +108,7 @@ def train(args, dataloader):
             image_tensor = sampled_x/255
             FID = get_fid(image_tensor, '/content/DiffusionProject/data/cifar10.train.npz')
             print(FID)
-            FID_vec = torch.cat((FID_vec, torch.Tensor([FID]).to(device)).to(device)
+            FID_vec = torch.cat((FID_vec, torch.Tensor([FID]).to(device))).to(device)
         
         torch.save(model.state_dict(), os.path.join("models", args.run_name, f"ckpt.pt"))
                             
