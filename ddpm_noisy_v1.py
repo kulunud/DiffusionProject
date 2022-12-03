@@ -103,7 +103,7 @@ def train(args, dataloader):
         #sampled_images = diffusion.sample(model, n=images.shape[0])
         #save_images(sampled_images, os.path.join("results", args.run_name, f"{epoch}.jpg"))
         
-        if epoch==0 or epoch==50 or epoch==100 or epoch==150 or epoch==200:
+        if epoch==0 or epoch==50 or epoch==100 or epoch==499:
             sampled_x = BuildX(p = args.p, model = model, diffusion = diffusion, n = args.n)
             image_tensor = sampled_x/255
             FID = get_fid(image_tensor, '/content/DiffusionProject/data/cifar10.train.npz')
