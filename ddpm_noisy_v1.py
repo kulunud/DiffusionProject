@@ -15,18 +15,20 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.02, img_size=128, device="cuda", p = 1.0):
+    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.05, img_size=128, device="cuda", p = 1.0):
         self.p = p
         self.noise_steps = noise_steps
         self.beta_start = beta_start
-        if p = 1.0:
+        if p == 1.0:
             self.beta_end = 0.02
-        else if p = 3.0:
+        elif p == 3.0:
             self.beta_end = 0.0343
-        else if p = 5.0:
+        elif p == 5.0:
             self.beta_end = 0.0421
-        else if p = 7.0:
+        elif p == 7.0:
             self.beta_end = 0.0468
+        else:
+            self.beta_end = beta_end
         print(self.beta_end)
         self.img_size = img_size
         self.device = device
