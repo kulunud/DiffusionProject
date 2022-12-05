@@ -19,7 +19,15 @@ class Diffusion:
         self.p = p
         self.noise_steps = noise_steps
         self.beta_start = beta_start
-        self.beta_end = beta_end
+        if p = 1.0:
+            self.beta_end = 0.02
+        else if p = 3.0:
+            self.beta_end = 0.0343
+        else if p = 5.0:
+            self.beta_end = 0.0421
+        else if p = 7.0:
+            self.beta_end = 0.0468
+        print(self.beta_end)
         self.img_size = img_size
         self.device = device
 
@@ -103,7 +111,7 @@ def train(args, dataloader):
         #sampled_images = diffusion.sample(model, n=images.shape[0])
         #save_images(sampled_images, os.path.join("results", args.run_name, f"{epoch}.jpg"))
         
-        if epoch==0 or epoch==50 or epoch==100 or epoch==499:
+        if epoch==49 or epoch==99 or epoch==499 or epoch==999:
             sampled_x = BuildX(p = args.p, model = model, diffusion = diffusion, n = args.n)
             image_tensor = sampled_x/255
             FID = get_fid(image_tensor, '/content/DiffusionProject/data/cifar10.train.npz')
