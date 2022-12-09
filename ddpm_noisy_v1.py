@@ -15,20 +15,21 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=log
 
 
 class Diffusion:
-    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.05, img_size=128, device="cuda", p = 1.0):
+    def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.02, img_size=128, device="cuda", p = 1.0):
         self.p = p
         self.noise_steps = noise_steps
         self.beta_start = beta_start
-        if p == 1.0:
-            self.beta_end = 0.02
-        elif p == 3.0:
-            self.beta_end = 0.0343
-        elif p == 5.0:
-            self.beta_end = 0.0421
-        elif p == 7.0:
-            self.beta_end = 0.0468
-        else:
-            self.beta_end = beta_end
+        self.beta_end = beta_end
+       # if p == 1.0:
+       #     self.beta_end = 0.02
+       # elif p == 3.0:
+       #     self.beta_end = 0.0343
+       # elif p == 5.0:
+       #     self.beta_end = 0.0421
+       # elif p == 7.0:
+       #     self.beta_end = 0.0468
+       # else:
+       #     self.beta_end = beta_end
         print(self.beta_end)
         self.img_size = img_size
         self.device = device
@@ -113,7 +114,7 @@ def train(args, dataloader):
         #sampled_images = diffusion.sample(model, n=images.shape[0])
         #save_images(sampled_images, os.path.join("results", args.run_name, f"{epoch}.jpg"))
         
-        if epoch==49 or epoch==99 or epoch==499 or epoch==999:
+        if epoch==24 or epoch==99 or epoch==499 or epoch==999:
             sampled_x = BuildX(p = args.p, model = model, diffusion = diffusion, n = args.n)
             image_tensor = sampled_x/255
             FID = get_fid(image_tensor, '/content/DiffusionProject/data/cifar10.train.npz')
